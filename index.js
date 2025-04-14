@@ -64,7 +64,6 @@ app.post('/', async (req, res) => {
           }
         });
 
-        // Improved logging
         console.log('✅ Klaviyo responded:', JSON.stringify(response.data, null, 2));
       }
 
