@@ -32,7 +32,7 @@ app.post('/', async (req, res) => {
         const variantId = giftCard.line_item?.variant_id;
 
         await axios.post('https://a.klaviyo.com/api/track', {
-          token: 'pk_5ad6285e8e5b68f8cfc593f5ccef953374',
+          token: 'token: process.env.KLAVIYO_API_KEY',
           event: 'Gift Card Purchased Event',
           customer_properties: {
             $email: customer.email,
