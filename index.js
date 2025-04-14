@@ -1,13 +1,14 @@
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+const qs = require('qs');
 
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Your actual public key (Site ID)
+const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your public key (Site ID)
 
-// Helper: Get image URL based on variant ID
+// Image map
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -50,11 +51,11 @@ app.post('/', async (req, res) => {
           }
         };
 
-        const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64');
 
         const response = await axios.post(
           'https://a.klaviyo.com/api/track',
-          new URLSearchParams({ data: encoded }),
+          qs.stringify({ data: encodedPayload }),
           {
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded'
