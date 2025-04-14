@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PRIVATE_KEY = 'pk_e3bc5681622aa8c01455f674ca624b241d'; // The API key you provided
+const KLAVIYO_PRIVATE_KEY = 'XcGGPF'; // Replace this with your actual private key
 
 // Map variant ID to image URL
 function getImageURL(variantId) {
@@ -44,7 +44,7 @@ app.post('/', async (req, res) => {
                 first_name: customer.first_name
               },
               metric: {
-                name: 'Gift Card Purchased Event' // Renamed event
+                name: 'Gift Card Purchased'
               },
               properties: {
                 giftcard_code: giftCard.code,
@@ -64,6 +64,7 @@ app.post('/', async (req, res) => {
           }
         });
 
+        // Improved logging
         console.log('✅ Klaviyo responded:', JSON.stringify(response.data, null, 2));
       }
 
