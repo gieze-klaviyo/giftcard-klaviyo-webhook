@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374'; // Replace this with your actual private key
+const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your public API key (Site ID)
 
 // Map variant ID to image URL
 function getImageURL(variantId) {
@@ -36,31 +36,25 @@ app.post('/', async (req, res) => {
         const variantId = giftCard.line_item?.variant_id;
 
         const payload = {
-          data: {
-            type: 'event',
-            attributes: {
-              profile: {
-                email: customer.email,
-                first_name: customer.first_name
-              },
-              metric: {
-                name: 'Gift Card Purchased Event'
-              },
-              properties: {
-                giftcard_code: giftCard.code,
-                giftcard_amount: giftCard.initial_value,
-                language: order.customer_locale,
-                image_url: getImageURL(variantId)
-              }
-            }
+          token: KLAVIYO_PUBLIC_KEY, // Use public API key (Site ID)
+          event: 'Gift Card Purchased Event',
+          customer_properties: {
+            $email: customer.email,
+            $first_name: customer.first_name
+          },
+          properties: {
+            giftcard_code: giftCard.code,
+            giftcard_amount: giftCard.initial_value,
+            language: order.customer_locale,
+            image_url: getImageURL(variantId)
           }
         };
 
-        const response = await axios.post('https://a.klaviyo.com/api/events/', payload, {
+        const response = await axios.post('https://a.klaviyo.com/api/track', {
+          data: Buffer.from(JSON.stringify(payload)).toString('base64')
+        }, {
           headers: {
-            Authorization: `Klaviyo-API-Key ${KLAVIYO_PRIVATE_KEY}`,
-            'Content-Type': 'application/json',
-            revision: '2023-02-22'
+            'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
 
