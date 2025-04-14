@@ -5,7 +5,10 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// 🔁 Match variant ID to the correct image
+// 🔐 Replace this with your actual private API key from Klaviyo
+const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374';
+
+// 🔁 Map variant ID to image URL
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -21,9 +24,9 @@ function getImageURL(variantId) {
   }
 }
 
-// 🚀 This is the webhook receiver
+// 🚀 Webhook to receive Shopify order events
 app.post('/', async (req, res) => {
-  console.log('🔔 Shopify webhook received'); // ✅ You'll see this in Render logs
+  console.log('🔔 Shopify webhook received');
 
   const order = req.body;
   const giftCards = order.gift_cards || [];
@@ -34,26 +37,42 @@ app.post('/', async (req, res) => {
       for (const giftCard of giftCards) {
         const variantId = giftCard.line_item?.variant_id;
 
-        await axios.post('https://a.klaviyo.com/api/track', {
-          token: 'pk_5ad6285e8e5b68f8cfc593f5ccef953374',
-          event: 'Gift Card Purchased',
-          customer_properties: {
-            $email: customer.email,
-            $first_name: customer.first_name
-          },
-          properties: {
-            giftcard_code: giftCard.code,
-            giftcard_amount: giftCard.initial_value,
-            language: order.customer_locale,
-            image_url: getImageURL(variantId)
-          },
-          time: order.created_at
+        const payload = {
+          data: {
+            type: 'event',
+            attributes: {
+              profile: {
+                email: customer.email,
+                first_name: customer.first_name
+              },
+              metric: {
+                name: 'Gift Card Purchased'
+              },
+              properties: {
+                giftcard_code: giftCard.code,
+                giftcard_amount: giftCard.initial_value,
+                language: order.customer_locale,
+                image_url: getImageURL(variantId)
+              },
+              timestamp: order.created_at
+            }
+          }
+        };
+
+        const response = await axios.post('https://a.klaviyo.com/api/events/', payload, {
+          headers: {
+            Authorization: `Klaviyo-API-Key ${KLAVIYO_PRIVATE_KEY}`,
+            'Content-Type': 'application/json',
+            revision: '2023-02-22'
+          }
         });
+
+        console.log('✅ Klaviyo responded:', response.data);
       }
 
       res.status(200).send('Klaviyo events sent');
     } catch (err) {
-      console.error('❌ Failed to send to Klaviyo:', err);
+      console.error('❌ Failed to send to Klaviyo:', err.response?.data || err.message);
       res.status(500).send('Failed to send to Klaviyo');
     }
   } else {
