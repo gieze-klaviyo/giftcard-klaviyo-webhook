@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PRIVATE_KEY = 'e3bc5681622aa8c01455f674ca624b241d'; // The API key you provided
+const KLAVIYO_PRIVATE_KEY = 'pk_e3bc5681622aa8c01455f674ca624b241d'; // The API key you provided
 
 // Map variant ID to image URL
 function getImageURL(variantId) {
