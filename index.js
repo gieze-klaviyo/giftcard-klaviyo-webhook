@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PRIVATE_KEY = 'KLAPI_5ad6285e8e5b68f8cfc593f5ccef953374'; // Replace this with your actual private key
+const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374'; // Replace this with your actual private key
 
 // Map variant ID to image URL
 function getImageURL(variantId) {
@@ -44,7 +44,7 @@ app.post('/', async (req, res) => {
                 first_name: customer.first_name
               },
               metric: {
-                name: 'Gift Card Purchased'
+                name: 'Gift Card Purchased Event'
               },
               properties: {
                 giftcard_code: giftCard.code,
