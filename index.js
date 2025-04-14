@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// 🔁 Map variant ID to image URL
+// 🔁 Match variant ID to the correct image
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -17,11 +17,14 @@ function getImageURL(variantId) {
     case 50380966756655:
       return 'https://cdn.shopify.com/s/files/1/0854/2244/0751/files/13.png?v=1724145631';
     default:
-      return 'https://cdn.shopify.com/s/files/1/0854/2244/0751/files/9.png?v=1724145631'; // fallback image
+      return 'https://cdn.shopify.com/s/files/1/0854/2244/0751/files/9.png?v=1724145631';
   }
 }
 
+// 🚀 This is the webhook receiver
 app.post('/', async (req, res) => {
+  console.log('🔔 Shopify webhook received'); // ✅ You'll see this in Render logs
+
   const order = req.body;
   const giftCards = order.gift_cards || [];
   const customer = order.customer;
@@ -32,8 +35,8 @@ app.post('/', async (req, res) => {
         const variantId = giftCard.line_item?.variant_id;
 
         await axios.post('https://a.klaviyo.com/api/track', {
-          token: 'token: process.env.KLAVIYO_API_KEY',
-          event: 'Gift Card Purchased Event',
+          token: 'pk_5ad6285e8e5b68f8cfc593f5ccef953374',
+          event: 'Gift Card Purchased',
           customer_properties: {
             $email: customer.email,
             $first_name: customer.first_name
@@ -50,12 +53,13 @@ app.post('/', async (req, res) => {
 
       res.status(200).send('Klaviyo events sent');
     } catch (err) {
-      console.error(err);
+      console.error('❌ Failed to send to Klaviyo:', err);
       res.status(500).send('Failed to send to Klaviyo');
     }
   } else {
+    console.log('⚠️ No gift cards or customer info found in this order');
     res.status(200).send('No gift cards or customer info found');
   }
 });
 
-app.listen(3000, () => console.log('Listening on port 3000'));
+app.listen(3000, () => console.log('🚀 Server running on port 3000'));
