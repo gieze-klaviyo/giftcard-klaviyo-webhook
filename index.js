@@ -5,9 +5,8 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace this with your public API key (Site ID)
+const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your public API key (Site ID)
 
-// Map variant ID to image URL
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -36,7 +35,7 @@ app.post('/', async (req, res) => {
         const variantId = giftCard.line_item?.variant_id;
 
         const payload = {
-          token: KLAVIYO_PUBLIC_KEY, // Use public API key (Site ID)
+          token: KLAVIYO_PUBLIC_KEY,
           event: 'Gift Card Purchased Event',
           customer_properties: {
             $email: customer.email,
@@ -50,13 +49,11 @@ app.post('/', async (req, res) => {
           }
         };
 
-        // The Track API expects the payload to be sent as a form-urlencoded string.
-        const formData = `data=${encodeURIComponent(
+        const encoded = `data=${encodeURIComponent(
           Buffer.from(JSON.stringify(payload)).toString('base64')
         )}`;
 
-        // Send the request to Klaviyo Track API
-        const response = await axios.post('https://a.klaviyo.com/api/track', formData, {
+        const response = await axios.post('https://a.klaviyo.com/api/track', encoded, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
