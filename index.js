@@ -44,7 +44,7 @@ app.post('/', async (req, res) => {
                 first_name: customer.first_name
               },
               metric: {
-                name: 'Gift Card Purchased Event'
+                name: 'Gift Card Purchased'
               },
               properties: {
                 giftcard_code: giftCard.code,
