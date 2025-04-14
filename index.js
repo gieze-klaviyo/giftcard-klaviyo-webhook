@@ -51,6 +51,20 @@ app.post('/', async (req, res) => {
           }
         };
 
+app.post('/', async (req, res) => {
+  console.log('🔔 Shopify webhook received');
+
+  // ✅ Add this to inspect the full payload
+  console.dir(req.body, { depth: null });
+
+  const order = req.body;
+  const giftCards = order.gift_cards || [];
+  const customer = order.customer;
+
+  // ...rest of your existing logic
+});
+
+
         const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64');
 
         const response = await axios.post(
