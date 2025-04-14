@@ -5,10 +5,9 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// 🔐 Replace this with your actual private API key from Klaviyo
-const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374';
+const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374'; // ← Replace this
 
-// 🔁 Map variant ID to image URL
+// Match variant ID to image
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -24,7 +23,6 @@ function getImageURL(variantId) {
   }
 }
 
-// 🚀 Webhook to receive Shopify order events
 app.post('/', async (req, res) => {
   console.log('🔔 Shopify webhook received');
 
@@ -46,15 +44,14 @@ app.post('/', async (req, res) => {
                 first_name: customer.first_name
               },
               metric: {
-                name: 'Gift Card Purchased Event'
+                name: 'Gift Card Purchased'
               },
               properties: {
                 giftcard_code: giftCard.code,
                 giftcard_amount: giftCard.initial_value,
                 language: order.customer_locale,
                 image_url: getImageURL(variantId)
-              },
-              timestamp: order.created_at
+              }
             }
           }
         };
