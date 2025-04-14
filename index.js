@@ -5,8 +5,9 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your public API key (Site ID)
+const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Your actual public key (Site ID)
 
+// Helper: Get image URL based on variant ID
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -49,17 +50,19 @@ app.post('/', async (req, res) => {
           }
         };
 
-        const encoded = `data=${encodeURIComponent(
-          Buffer.from(JSON.stringify(payload)).toString('base64')
-        )}`;
+        const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
 
-        const response = await axios.post('https://a.klaviyo.com/api/track', encoded, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+        const response = await axios.post(
+          'https://a.klaviyo.com/api/track',
+          new URLSearchParams({ data: encoded }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
           }
-        });
+        );
 
-        console.log('✅ Klaviyo responded:', JSON.stringify(response.data, null, 2));
+        console.log('✅ Klaviyo responded:', response.data);
       }
 
       res.status(200).send('Klaviyo events sent');
