@@ -5,9 +5,8 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your actual public API key (Site ID)
+const KLAVIYO_PRIVATE_KEY = 'pk_5ad6285e8e5b68f8cfc593f5ccef953374'; // Use private API key here
 
-// Map variant ID to image URL
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -27,8 +26,6 @@ app.post('/', async (req, res) => {
   console.log('🔔 Shopify webhook received');
 
   const order = req.body;
-  console.log('📦 Shopify Payload:', JSON.stringify(order, null, 2));
-
   const giftCards = order.gift_cards || [];
   const customer = order.customer;
 
@@ -37,39 +34,46 @@ app.post('/', async (req, res) => {
       for (const giftCard of giftCards) {
         const variantId = giftCard?.line_item?.variant_id;
 
-        const payload = {
-          token: KLAVIYO_PUBLIC_KEY,
-          event: 'Gift Card Purchased Event',
-          customer_properties: {
-            $email: customer.email,
-            $first_name: customer.first_name || ''
-          },
-          properties: {
-            giftcard_code: giftCard.code || '',
-            giftcard_amount: giftCard.initial_value || 0,
-            language: order.customer_locale || 'en',
-            image_url: getImageURL(variantId)
+        const eventPayload = {
+          data: {
+            type: 'event',
+            attributes: {
+              profile: {
+                email: customer.email,
+                first_name: customer.first_name || ''
+              },
+              metric: {
+                name: 'Gift Card Purchased Event'
+              },
+              properties: {
+                giftcard_code: giftCard.code || '',
+                giftcard_amount: giftCard.initial_value || 0,
+                language: order.customer_locale || 'en',
+                image_url: getImageURL(variantId)
+              },
+              timestamp: new Date().toISOString()
+            }
           }
         };
 
-        const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
-
         const response = await axios.post(
-          'https://a.klaviyo.com/api/track',
-          `data=${encoded}`,
+          'https://a.klaviyo.com/api/events/',
+          eventPayload,
           {
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
+              Authorization: `Klaviyo-API-Key ${KLAVIYO_PRIVATE_KEY}`,
+              revision: '2025-01-15',
+              'Content-Type': 'application/json'
             }
           }
         );
 
-        console.log('✅ Klaviyo responded:', response.data);
+        console.log('✅ Custom event sent to Klaviyo:', response.status);
       }
 
-      res.status(200).send('Klaviyo events sent');
+      res.status(200).send('Klaviyo custom events sent');
     } catch (err) {
-      console.error('❌ Failed to send to Klaviyo:', err.response?.data || err.message);
+      console.error('❌ Error sending to Klaviyo:', err.response?.data || err.message);
       res.status(500).send('Failed to send to Klaviyo');
     }
   } else {
