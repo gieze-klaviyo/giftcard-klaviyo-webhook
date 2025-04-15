@@ -5,9 +5,9 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your public Site ID
+const KLAVIYO_PUBLIC_KEY = 'XcGGPF'; // Replace with your actual public API key (Site ID)
 
-// Gift card variant ID to image map
+// Map variant ID to image URL
 function getImageURL(variantId) {
   switch (variantId) {
     case 50380966658351:
@@ -27,37 +27,42 @@ app.post('/', async (req, res) => {
   console.log('🔔 Shopify webhook received');
 
   const order = req.body;
+  console.log('📦 Shopify Payload:', JSON.stringify(order, null, 2));
+
   const giftCards = order.gift_cards || [];
   const customer = order.customer;
 
-  if (giftCards.length && customer) {
+  if (giftCards.length && customer && customer.email) {
     try {
       for (const giftCard of giftCards) {
-        const variantId = giftCard.line_item?.variant_id;
+        const variantId = giftCard?.line_item?.variant_id;
 
         const payload = {
           token: KLAVIYO_PUBLIC_KEY,
-          event: 'TEST - Gift Card Purchase for Jessica',
+          event: 'Gift Card Purchased Event',
           customer_properties: {
             $email: customer.email,
-            $first_name: customer.first_name,
+            $first_name: customer.first_name || ''
           },
           properties: {
-            giftcard_code: giftCard.code,
-            giftcard_amount: giftCard.initial_value,
-            language: order.customer_locale,
-            image_url: getImageURL(variantId),
-          },
+            giftcard_code: giftCard.code || '',
+            giftcard_amount: giftCard.initial_value || 0,
+            language: order.customer_locale || 'en',
+            image_url: getImageURL(variantId)
+          }
         };
 
         const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
-        const formBody = `data=${encoded}`;
 
-        const response = await axios.post('https://a.klaviyo.com/api/track', formBody, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
+        const response = await axios.post(
+          'https://a.klaviyo.com/api/track',
+          `data=${encoded}`,
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          }
+        );
 
         console.log('✅ Klaviyo responded:', response.data);
       }
@@ -73,6 +78,4 @@ app.post('/', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('🚀 Server running on port 3000');
-});
+app.listen(3000, () => console.log('🚀 Server running on port 3000'));
