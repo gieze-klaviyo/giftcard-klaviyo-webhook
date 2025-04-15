@@ -37,7 +37,7 @@ app.post('/', async (req, res) => {
 
         const payload = {
           token: KLAVIYO_PUBLIC_KEY,
-          event: 'Gift Card Purchased Event',
+          event: 'TEST - Gift Card Purchase for Jessica',
           customer_properties: {
             $email: customer.email,
             $first_name: customer.first_name,
